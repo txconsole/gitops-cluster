@@ -1,0 +1,8 @@
+#@data/values
+---
+
+git:
+  url: https://github.com/georgegoh/gitops-cluster
+  branch: origin/default
+  secretRef: ""
+

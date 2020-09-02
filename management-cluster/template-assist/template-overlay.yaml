@@ -1,0 +1,64 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+
+#@overlay/match by=overlay.all,expects="0+"
+---
+metadata:
+  namespace: workload-clusters
+
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+
+metadata:
+  name: #@ "{}-postcreate".format(data.values.cluster_name)
+  # namespace is going to be used as a default namespace during kapp deploy
+  namespace: workload-clusters
+  annotations:
+    kapp.k14s.io/change-group: "gitops.tanzu.vmware.com/cni"
+    kapp.k14s.io/change-rule: "upsert before upserting gitops.tanzu.vmware.com/kapp-controller"
+
+spec:
+  cluster:
+    namespace: kube-system
+    kubeconfigSecretRef:
+      name:  #@ "{}-kubeconfig".format(data.values.cluster_name)
+      key: value
+
+  fetch:
+  - inline:
+      pathsFrom:
+      - secretRef:
+          name: #@ "{}-postcreate".format(data.values.cluster_name)
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+  deploy:
+  - kapp: {}
+
+#@overlay/match by=overlay.subset({"kind":"KubeadmControlPlane"})
+---
+spec:
+  kubeadmConfigSpec:
+    clusterConfiguration:
+      #@overlay/match missing_ok=True
+      apiServer:
+        #@overlay/match missing_ok=True
+        certSANs:
+        - #@ "{}.cluster.tanzu.world".format(data.values.cluster_name)
+
+#@overlay/match by=overlay.subset({"kind":"MachineDeployment"})
+---
+spec:
+  #@overlay/match missing_ok=True
+  selector:
+    #@overlay/match missing_ok=True
+    #@overlay/replace
+    matchLabels:
+      node-pool: #@ "{}-worker-pool".format(data.values.cluster_name)
+
+#@overlay/match by=overlay.subset({"kind": "Secret", "metadata": { "name": "{}-postcreate".format(data.values.cluster_name) }})
+---
+#@overlay/replace via=lambda a,b: {"calico.yml": a["calicoYaml"]}
+stringData:

@@ -1,0 +1,7 @@
+#@data/values
+---
+cluster_name: ""
+
+git:
+  url: https://github.com/georgegoh/gitops-cluster
+  branch: origin/default
