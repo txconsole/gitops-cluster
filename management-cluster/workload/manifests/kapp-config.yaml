@@ -1,0 +1,146 @@
+apiVersion: kapp.k14s.io/v1alpha1
+kind: Config
+
+rebaseRules:
+
+# cluster
+- path: [spec, controlPlaneEndpoint]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: Cluster}
+
+# aws cluster
+
+- path: [spec, controlPlaneEndpoint]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: &awscluster
+  - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3, kind: AWSCluster}
+
+- path: [metadata, labels, cluster.x-k8s.io/cluster-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+- path: [spec, networkSpec, subnets, {allIndexes: true}, id]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+- path: [spec, networkSpec, subnets, {allIndexes: true}, natGatewayId]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+- path: [spec, networkSpec, subnets, {allIndexes: true}, routeTableId]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+- path: [spec, networkSpec, subnets, {allIndexes: true}, isPublic]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+- path: [spec, networkSpec, subnets, {allIndexes: true}, tags]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+- path: [spec, networkSpec, vpc, id]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+- path: [spec, networkSpec, vpc, internetGatewayId]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+- path: [spec, networkSpec, vpc, tags]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers: *awscluster
+
+# control plane
+- path: [metadata, labels, cluster.x-k8s.io/cluster-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: controlplane.cluster.x-k8s.io/v1alpha3, kind: KubeadmControlPlane}
+
+# machine dep
+- path: [metadata, labels, cluster.x-k8s.io/cluster-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+- path: [metadata, annotations, machinedeployment.clusters.x-k8s.io/revision]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+- path: [spec, selector, matchLabels]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+- path: [spec, minReadySeconds]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+- path: [spec, progressDeadlineSeconds]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+- path: [spec, revisionHistoryLimit]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+- path: [spec, strategy]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+- path: [spec, template, metadata, labels, cluster.x-k8s.io/cluster-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+- path: [spec, template, metadata, labels, cluster.x-k8s.io/deployment-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1alpha3, kind: MachineDeployment}
+
+
+changeGroupBindings:
+- name: cluster.x-k8s.io/cluster-resources
+  resourceMatchers: &clusterresources
+  - apiGroupKindMatcher: {kind: Cluster, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: MachineDeployment, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: MachineHealthCheck, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: AWSCluster, apiGroup: infrastructure.cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: AWSMachineTemplate, apiGroup: infrastructure.cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: KubeadmControlPlane, apiGroup: controlplane.x-k8s.io}
+  - apiGroupKindMatcher: {kind: KubeadmConfigTemplate, apiGroup: bootstrap.cluster.x-k8s.io}
+
+changeRuleBindings:
+- rules:
+  # [Note]: Make sure to delete the remote app CR prior to deleting the cluster
+  - "delete before deleting change-groups.kapp.k14s.io/pod-related"
+  - "delete before deleting cluster.x-k8s.io/cluster-resources"
+  resourceMatchers:
+  - apiGroupKindMatcher: {kind: App, apiGroup: kappctrl.k14s.io }
