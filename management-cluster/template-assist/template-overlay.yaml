@@ -37,6 +37,8 @@ spec:
   deploy:
   - kapp: {}
 
+---
+
 #@overlay/match by=overlay.subset({"kind":"KubeadmControlPlane"})
 ---
 spec:
