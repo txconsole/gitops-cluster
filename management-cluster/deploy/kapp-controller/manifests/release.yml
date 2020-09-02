@@ -43,13 +43,13 @@ metadata:
   annotations:
     kbld.k14s.io/images: |
       - Metas:
-        - Path: /Users/pivotal/workspace/ytt-go/src/github.com/k14s/kapp-controller
+        - Path: /Users/dk/workspace/k14s-go/src/github.com/k14s/kapp-controller
           Type: local
         - Dirty: false
-          RemoteURL: git@github.com:k14s/kapp-controller.git
-          SHA: b74045fb278e64cb621e0f8d15fd28ba95d6ff8d
+          RemoteURL: git@github.com:k14s/kapp-controller
+          SHA: bba3a49933682a4bbbff4da96a7fed3708ddb78d
           Type: git
-        URL: index.docker.io/k14s/kapp-controller@sha256:f427e31cd6f9dc85fff69d67e6d89b0d4d49cf5e5730b8757dfd28a8cf162665
+        URL: index.docker.io/k14s/kapp-controller@sha256:91a2a6955cb6ca5fcf532e007a6d740a99150418393cf41046d9e15e5bfee69d
   name: kapp-controller
   namespace: kapp-controller
 spec:
@@ -70,7 +70,7 @@ spec:
         env:
         - name: KAPPCTRL_MEM_TMP_DIR
           value: /etc/kappctrl-mem-tmp
-        image: index.docker.io/k14s/kapp-controller@sha256:f427e31cd6f9dc85fff69d67e6d89b0d4d49cf5e5730b8757dfd28a8cf162665
+        image: index.docker.io/k14s/kapp-controller@sha256:91a2a6955cb6ca5fcf532e007a6d740a99150418393cf41046d9e15e5bfee69d
         name: kapp-controller
         resources:
           requests:
